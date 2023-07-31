@@ -25,12 +25,12 @@ class Config:
 
     # Training Related
     learning_rate = 1e-3
-    epochs = 200
+    epochs = 300
     batch_size = 32
     early_stop = 50
     valid_cycle = 2
     warmup_steps = 10
-    lamb = 0.1
+    lamb = 0.4
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = None

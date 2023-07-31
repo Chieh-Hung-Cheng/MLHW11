@@ -9,16 +9,32 @@ class FeatureExtractor(nn.Module):
         super(FeatureExtractor, self).__init__()
         self.net = nn.Sequential(
             # (N,1,32,32)
-            nn.Conv2d(in_channels=1, out_channels=3, kernel_size=3, padding=1), # (N,3,32,32)
+            nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, padding=1), # (N,64,32,32)
+            nn.BatchNorm2d(num_features=64),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2), # (N,3,16,16)
-            nn.Conv2d(in_channels=3, out_channels=8, kernel_size=3, padding=1), # (N,8,16,16)
+            nn.MaxPool2d(kernel_size=2, stride=2), # (N,64,16,16)
+
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, padding=1), # (N,128,16,16)
+            nn.BatchNorm2d(num_features=128),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2), # (N,8,8,8)
-            nn.Conv2d(in_channels=8, out_channels=16, kernel_size=3, padding=1), # (N,16,8,8)
+            nn.MaxPool2d(kernel_size=2, stride=2), # (N,128,8,8)
+
+            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, padding=1), # (N,256,8,8)
+            nn.BatchNorm2d(num_features=256),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2), # (N,16,4,4)
-            nn.Flatten() # (N,256)
+            nn.MaxPool2d(kernel_size=2, stride=2), # (N,256,4,4)
+
+            nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3, padding=1), # (N,512,4,4)
+            nn.BatchNorm2d(num_features=512),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2), # (N,512,2,2)
+
+            nn.Conv2d(in_channels=512, out_channels=1024, kernel_size=3, padding=1),  # (N,1024,2,2)
+            nn.BatchNorm2d(num_features=1024),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2),  # (N,1024,1,1)
+
+            nn.Flatten() # (N,1024)
         )
 
     def forward(self, x):
@@ -33,12 +49,12 @@ class CategoryClassifier(nn.Module):
     def __init__(self):
         super(CategoryClassifier, self).__init__()
         self.net = nn.Sequential(
-            # (N,256)
-            nn.Linear(256, 64), # (N,64)
+            # (N,1024)
+            nn.Linear(1024, 512), # (N,512)
             nn.ReLU(),
-            nn.Linear(64, 32), # (N,32)
+            nn.Linear(512, 256), # (N,256)
             nn.ReLU(),
-            nn.Linear(32, 10) # (N,10)
+            nn.Linear(256, 10) # (N,10)
         )
 
     def forward(self, x):
@@ -50,12 +66,20 @@ class DomainClassifier(nn.Module):
     def __init__(self):
         super(DomainClassifier, self).__init__()
         self.net = nn.Sequential(
-            # (N,256)
-            nn.Linear(256, 32), # (N,64)
+            # (N,1024)
+            nn.Linear(1024, 512), # (N,512)
+            nn.BatchNorm1d(num_features=512),
             nn.ReLU(),
-            nn.Linear(32, 8), # (N,32)s
+
+            nn.Linear(512, 512),  # (N,512)
+            nn.BatchNorm1d(num_features=512),
             nn.ReLU(),
-            nn.Linear(8, 1) # (N,1)
+
+            nn.Linear(512, 512),  # (N,512)
+            nn.BatchNorm1d(num_features=512),
+            nn.ReLU(),
+
+            nn.Linear(512, 1) # (N,1)
         )
 
     def forward(self, x):
